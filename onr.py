@@ -19,94 +19,112 @@ cleaned_data = clean_dict(data)
 def restructure_component(comp):
     def safe_get(key, default=""):
         val = comp.get(key, default)
-        return val if val not in [None, ""] else default
+        return val if val not in [None, "", "na"] else default
     
-    # Paper's 7 fields (Table 1) - put ALL specs in appropriate fields
+    # Get all keys present in this component
+    keys = comp.keys()
+    
+    # Field 1: Title
+    title = safe_get("Manufacturer_Part_Name")
+    
+    # Field 2: Description
+    desc_fields = []
+    if "Connection_Type" in keys:
+        desc_fields.append(safe_get("Connection_Type"))
+    if "Connector_Family_or_Series" in keys:
+        desc_fields.append(safe_get("Connector_Family_or_Series"))
+    if "Sealed_or_Unsealed" in keys:
+        desc_fields.append(safe_get("Sealed_or_Unsealed"))
+    if "Type_Plug_Receptacle" in keys:
+        desc_fields.append(safe_get("Type_Plug_Receptacle"))
+    if "Inline_Mounting_feature_type" in keys:
+        desc_fields.append(safe_get("Inline_Mounting_feature_type"))
+    if "Shielded_Unshielded" in keys:
+        desc_fields.append(safe_get("Shielded_Unshielded"))
+    
+    # Field 3: Product category
+    category = " > ".join(filter(None, [
+        safe_get("level_1"),
+        safe_get("level_2"), 
+        safe_get("level_3"),
+        safe_get("level_4")
+    ]))
+    
+    # Field 4: Metadata
+    meta_fields = []
+    if "Color_or_Finish" in keys:
+        meta_fields.append(safe_get("Color_or_Finish"))
+    if "Material" in keys:
+        meta_fields.append(safe_get("Material"))
+    if "Keying_Yes_or_No" in keys:
+        meta_fields.append(safe_get("Keying_Yes_or_No"))
+    if "ROHS_Compliant_Yes_or_No" in keys:
+        meta_fields.append(safe_get("ROHS_Compliant_Yes_or_No"))
+    if "UL_94_Approved_Yes_or_No" in keys:
+        meta_fields.append(safe_get("UL_94_Approved_Yes_or_No"))
+    if "TPA_Available_Yes_or_No" in keys:
+        meta_fields.append(safe_get("TPA_Available_Yes_or_No"))
+    if "CPA_Available_Yes_or_No" in keys:
+        meta_fields.append(safe_get("CPA_Available_Yes_or_No"))
+    if "Panel_Mountable_Yes_or_No" in keys:
+        meta_fields.append(safe_get("Panel_Mountable_Yes_or_No"))
+    if "Backshell_Available_Yes_or_No" in keys:
+        meta_fields.append(safe_get("Backshell_Available_Yes_or_No"))
+    if "Secondary_Lock_Available_Yes_or_No" in keys:
+        meta_fields.append(safe_get("Secondary_Lock_Available_Yes_or_No"))
+    if "Dust_Shipping_Cap_Available_Yes_or_No" in keys:
+        meta_fields.append(safe_get("Dust_Shipping_Cap_Available_Yes_or_No"))
+    if "Flammability_Rating" in keys:
+        meta_fields.append(safe_get("Flammability_Rating"))
+    if "SAE_J2030_Test_Set_Yes_or_No" in keys:
+        meta_fields.append(safe_get("SAE_J2030_Test_Set_Yes_or_No"))
+    
+    # Field 5: Brand
+    brand_fields = []
+    if "Manufacturer_Name" in keys:
+        brand_fields.append(safe_get("Manufacturer_Name"))
+    if "Final_Preference_Level" in keys:
+        brand_fields.append(safe_get("Final_Preference_Level"))
+    
+    # Field 6: Numeric
+    numeric_fields = []
+    if "Voltage_ratingin_Volts" in keys:
+        numeric_fields.append(str(safe_get("Voltage_ratingin_Volts")))
+    if "Number_of_poles" in keys:
+        numeric_fields.append(str(safe_get("Number_of_poles")))
+    if "Operating_Temperature_range_in_Degree_Celsius" in keys:
+        numeric_fields.append(str(safe_get("Operating_Temperature_range_in_Degree_Celsius")))
+    if "Pitch_in_" in keys:
+        numeric_fields.append(str(safe_get("Pitch_in_")))
+    if "No_of_rows" in keys:
+        numeric_fields.append(str(safe_get("No_of_rows")))
+    if "Insulation_resistance" in keys:
+        numeric_fields.append(str(safe_get("Insulation_resistance")))
+    if "Terminal_retention_Strength_terminal_inside_connector_in_Newton_Optional" in keys:
+        numeric_fields.append(str(safe_get("Terminal_retention_Strength_terminal_inside_connector_in_Newton_Optional")))
+    if "Mating_Cycle" in keys:
+        numeric_fields.append(str(safe_get("Mating_Cycle")))
+    if "Wire_Size_Range" in keys:
+        numeric_fields.append(str(safe_get("Wire_Size_Range")))
+    
+    # Field 7: Technical details
+    tech_fields = []
+    if "Degree_of_Protection_IP_rating" in keys:
+        tech_fields.append(safe_get("Degree_of_Protection_IP_rating"))
+    if "Manufacturer_Part _No" in keys:
+        tech_fields.append(safe_get("Manufacturer_Part _No"))
+    if "Manufacturer_Part_No" in keys:
+        tech_fields.append(safe_get("Manufacturer_Part_No"))
+    
     restructured = {
         "_id": safe_get("_id"),
-        
-        # Field 1: Title
-        "Title": safe_get("Manufacturer_Part_Name"),
-        
-        # Field 2: Description - ALL descriptive text
-        "Description": " ".join(filter(None, [
-            safe_get("Cable_Type_example_SGX_or_SXL_or_GXL_or_SGT_or_UL Style_etc"),
-            safe_get("Shielded_or_Not Shielded"),
-            safe_get("Type_of_Shield _If_applicable"),
-            safe_get("Connection_Type"),
-            safe_get("Connector Family_or_Series"),
-            safe_get("Sealed_or_Unsealed"),
-            safe_get("Inline Mounting feature_type"),
-            safe_get("Appplication_type _Communication_or_Power")
-        ])),
-        
-        # Field 3: Product category
-        "Product_category": " > ".join(filter(None, [
-            safe_get("level_1"),
-            safe_get("level_2"), 
-            safe_get("level_3"),
-            safe_get("level_4")
-        ])),
-        
-        # Field 4: Metadata - ALL material, color, texture specs
-        "Metadata": " ".join(filter(None, [
-            safe_get("Color_of_Outer_Jacket"),
-            safe_get("Color_of_Individual_Wires"),
-            safe_get("Color_or_Finish"),
-            safe_get("Material_of_Outer_Jacket"),
-            safe_get("Material_of_Individual_Conductors"),
-            safe_get("Material_of_Shield"),
-            safe_get("Material"),
-            safe_get("Twisted_Pair _or_No_Number_of_Twisted_pairs"),
-            safe_get("Drain Wire_Yes_or_No"),
-            safe_get("Drain Wire Yes_or_No"),
-            safe_get("AWG_or_Wire Size_of_Drain_Wire"),
-            safe_get("Keying Yes or No"),
-            safe_get("Integrated_Sealed_or_wire_seal"),
-            safe_get("ROHS_Compliant_Yes_or_No"),
-            safe_get("ROHS_Compliant_Yes_or_to"),
-            safe_get("UL 94_Approved_Yes_or_to"),
-            safe_get("TPA Available_Yes_or_to"),
-            safe_get("CPA_Available_Yes_or_to")
-        ])),
-        
-        # Field 5: Brand
-        "Brand": " ".join(filter(None, [
-            safe_get("Manufacturer"),
-            safe_get("Final_Preference_Level")
-        ])),
-        
-        # Field 6: Numeric - ALL numeric values
-        "Numeric": " ".join(filter(None, [
-            str(safe_get("Voltage_ Rating_for_Cable")),
-            str(safe_get("Voltage_ratingin_Volts")),
-            str(safe_get("Number_of_poles")),
-            str(safe_get("Humber_of_poles")),
-            str(safe_get("Operating_Temperature_range_in_Degree_Celsius")),
-            str(safe_get("Number_of_conductors")),
-            str(safe_get("AWG_or_Wire Size_For_Individual_Wires")),
-            str(safe_get("AWG_or_Mire Size_For_Individual Wires")),
-            str(safe_get("Outer_ Diameter_for_Cable_in_MM")),
-            str(safe_get("Current Rating_in_Amps")),
-            str(safe_get("Current_Rating_in_Amps")),
-            str(safe_get("Pitch_in ")),
-            str(safe_get("Weight\n")),
-            str(safe_get("Base Material weight_in_Grams_Optional")),
-            str(safe_get("No_of_rows")),
-            str(safe_get("Insulation resistance")),
-            str(safe_get("Mating Force Optional")),
-            str(safe_get("Unmatting force_Optional")),
-            str(safe_get("Contact size"))
-        ])),
-        
-        # Field 7: Additional technical details
-        "Technical_details": " ".join(filter(None, [
-            safe_get("Degree_of_Protection_IP_rating"),
-            safe_get("Type_Plug Receptacle"),
-            safe_get("Panel Mountable_Yes_or_to"),
-            safe_get("Internal_Part_Number_1"),
-            safe_get("Manufacturer_Part _No")
-        ]))
+        "Title": title,
+        "Description": " ".join(filter(None, desc_fields)),
+        "Product_category": category,
+        "Metadata": " ".join(filter(None, meta_fields)),
+        "Brand": " ".join(filter(None, brand_fields)),
+        "Numeric": " ".join(filter(None, numeric_fields)),
+        "Technical_details": " ".join(filter(None, tech_fields))
     }
     
     return restructured
